@@ -18,7 +18,9 @@ on a massive scale.
    E.g. `ab -c 1000 -n 5000 -r http://<hostname_or_ip>:9000/`.
 3. Adjust parameters and/or server code,
    repeat lots of requests.
-   It may be necessary to run `ab` across multiple client hosts.
+   For massive concurrency,
+   it may be necessary to run `ab` across multiple client hosts,
+   and to increase the maximum open file handles for the server process.
 4. Formulate results into a pretty graph.
 5. Write blog post.
 6. A bit late, but profit.
