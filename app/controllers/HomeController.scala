@@ -3,13 +3,13 @@ package controllers
 import javax.inject._
 
 import akka.actor.ActorSystem
-import play.api.mvc.{InjectedController, Result}
+import play.api.mvc.{Action, Controller, Result}
 
 import scala.concurrent.{ExecutionContext, Promise}
 import scala.concurrent.duration._
 
 @Singleton
-class HomeController @Inject()(system: ActorSystem, ec: ExecutionContext) extends InjectedController {
+class HomeController @Inject()(system: ActorSystem, ec: ExecutionContext) extends Controller {
 
   def index = Action.async {
     val start = System.currentTimeMillis
