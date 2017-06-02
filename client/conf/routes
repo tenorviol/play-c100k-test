@@ -1,0 +1,6 @@
+GET     /               client.controllers.HomeController.get
+
+POST    /clients        client.controllers.ClientsController.post
+GET     /clients/:n     client.controllers.ClientsController.getN(n: Int)
+POST    /clients/:n     client.controllers.ClientsController.postN(n: Int)
+DELETE  /clients/:n     client.controllers.ClientsController.deleteN(n: Int)
