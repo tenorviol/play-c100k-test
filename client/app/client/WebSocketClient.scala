@@ -1,6 +1,7 @@
 package client
 
 import java.time.{Duration, Instant}
+import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.Done
@@ -43,7 +44,8 @@ case class WebSocketClient(ws: String, metrics: ClientMetrics)(implicit system: 
 
   def isConnected: Boolean = connectionResponse.isCompleted && !isClosed
 
-  def isClosed: Boolean = closed.isCompleted
+  private val _isClosed = new AtomicBoolean(false)
+  def isClosed: Boolean = _isClosed.get
 
   def send(s: String): Future[QueueOfferResult] = {
     sendQueue.flatMap { q =>
@@ -84,27 +86,30 @@ case class WebSocketClient(ws: String, metrics: ClientMetrics)(implicit system: 
   // the Future[Done] is the materialized value of Sink.foreach
   // and it is completed when the stream completes
   private val flow: Flow[Message, Message, Future[Done]] = {
-    Flow.fromSinkAndSourceMat(receiveSink, sendSource)(Keep.left)
+    Flow
+      .fromSinkAndSourceMat(receiveSink, sendSource)(Keep.left)
+      .watchTermination() { (mat, doneFuture) =>
+        metrics.connections.increment()
+        doneFuture.onComplete { _ =>
+          _isClosed.set(true)
+          metrics.connections.decrement()
+        }
+        mat
+      }
   }
 
   private val connectionStart = Instant.now
 
-  // upgradeResponse is a Future[WebSocketUpgradeResponse] that
-  // completes or fails when the connection succeeds or fails
-  // and closed is a Future[Done] representing the stream completion from above
-  private val (upgradeResponse, closed) = {
+  // `upgradeResponse` is a Future[WebSocketUpgradeResponse] that
+  // completes or fails when the connection succeeds or fails.
+  private val (upgradeResponse, _) = {
     Http().singleWebSocketRequest(WebSocketRequest(ws), flow)
   }
 
   val connectionResponse: Future[HttpResponse] = upgradeResponse.map { upgrade =>
     val connectionEstablished = Instant.now()
     metrics.connectionMS.record(Duration.between(connectionStart, connectionEstablished).toMillis)
-    metrics.connections.increment()
     upgrade.response
-  }
-
-  closed.foreach { _ =>
-    metrics.connections.decrement()
   }
 
 }

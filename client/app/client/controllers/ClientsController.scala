@@ -31,7 +31,7 @@ class ClientsController @Inject() (
         clients.add(ws)
       }
       val body = ens.map(client.controllers.routes.ClientsController.getN).map(_.toString)
-      Ok(Json.arr(body))
+      Ok(Json.toJson(body))
     })
   }
 

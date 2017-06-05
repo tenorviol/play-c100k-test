@@ -1,8 +1,16 @@
 package server
 
-/**
-  * Created by chris on 6/5/17.
-  */
-class ServerMetrics {
+import javax.inject._
+
+import akka.actor.ActorSystem
+import com.lightbend.cinnamon.akka.CinnamonMetrics
+import com.lightbend.cinnamon.metric.Counter
+
+@Singleton
+class ServerMetrics @Inject() (system: ActorSystem) {
+
+  val cinnamon = CinnamonMetrics(system)
+
+  val connections: Counter = cinnamon.createCounter("ws.server.connection.count")
 
 }

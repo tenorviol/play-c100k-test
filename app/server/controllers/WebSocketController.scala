@@ -7,16 +7,21 @@ import akka.stream.Materializer
 import play.api.Logger
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.{Controller, WebSocket}
+import server.ServerMetrics
 
 import scala.concurrent.ExecutionContext
 
 object WebSocketController {
 
   object WebSocketEchoActor {
-    def props(out: ActorRef) = Props(classOf[WebSocketEchoActor], out)
+    def props(out: ActorRef, metrics: ServerMetrics): Props = {
+      Props(classOf[WebSocketEchoActor], out, metrics)
+    }
   }
 
-  class WebSocketEchoActor(out: ActorRef) extends Actor {
+  class WebSocketEchoActor(out: ActorRef, metrics: ServerMetrics) extends Actor {
+    metrics.connections.increment()
+
     def receive: Receive = {
       case m: String =>
         // echo
@@ -24,19 +29,21 @@ object WebSocketController {
     }
 
     override def postStop(): Unit = {
-      println("Finished!!!")
+      metrics.connections.decrement()
     }
   }
 
 }
 
 @Singleton
-class WebSocketController @Inject() (implicit system: ActorSystem, materializer: Materializer, ec: ExecutionContext) extends Controller {
+class WebSocketController @Inject() (
+  metrics: ServerMetrics
+)(implicit system: ActorSystem, materializer: Materializer, ec: ExecutionContext) extends Controller {
   import WebSocketController._
 
   private val log = Logger(getClass)
 
   def wsEcho: WebSocket = WebSocket.accept[String, String] { request =>
-    ActorFlow.actorRef(out => WebSocketEchoActor.props(out))
+    ActorFlow.actorRef(out => WebSocketEchoActor.props(out, metrics))
   }
 }
