@@ -1,3 +1,3 @@
-GET     /                           controllers.HomeController.index
+GET     /               server.controllers.HomeController.index
 
-GET     /ws/echo                    controllers.WebSocketController.wsEcho
+GET     /ws/echo        server.controllers.WebSocketController.wsEcho

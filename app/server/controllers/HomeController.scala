@@ -1,12 +1,12 @@
-package controllers
+package server.controllers
 
 import javax.inject._
 
 import akka.actor.ActorSystem
 import play.api.mvc.{Action, Controller, Result}
 
-import scala.concurrent.{ExecutionContext, Promise}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Promise}
 
 @Singleton
 class HomeController @Inject()(system: ActorSystem, ec: ExecutionContext) extends Controller {

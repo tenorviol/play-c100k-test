@@ -1,4 +1,4 @@
-package controllers
+package server.controllers
 
 import javax.inject._
 

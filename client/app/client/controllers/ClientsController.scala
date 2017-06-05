@@ -18,17 +18,20 @@ class ClientsController @Inject() (
 )(implicit ec: ExecutionContext) extends AbstractController(components) with I18nSupport {
 
   val addForm = Form(
-    single(
-      "ws" -> text
+    tuple(
+      "ws" -> text,
+      "count" -> default(number, 1)
     )
   )
 
   def post = Action { implicit request =>
     val form = addForm.bindFromRequest()
-    form.fold(f => BadRequest(f.errorsAsJson), { ws =>
-      val n = clients.add(ws)
-      val call = client.controllers.routes.ClientsController.getN(n)
-      Redirect(call)
+    form.fold(f => BadRequest(f.errorsAsJson), { case (ws, count) =>
+      val ens = for (i <- 0 until count) yield {
+        clients.add(ws)
+      }
+      val body = ens.map(client.controllers.routes.ClientsController.getN).map(_.toString)
+      Ok(Json.arr(body))
     })
   }
 
