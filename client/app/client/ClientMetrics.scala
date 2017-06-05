@@ -15,4 +15,6 @@ class ClientMetrics @Inject() (system: ActorSystem) {
 
   val connectionMS: Recorder = cinnamon.createRecorder("ws.client.connection.ms")
 
+  val ping: Recorder = cinnamon.createRecorder("ws.client.ping.ms")
+
 }

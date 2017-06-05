@@ -13,6 +13,8 @@ import akka.http.scaladsl.model.ws._
 import play.api.Logger
 
 import scala.concurrent.{Future, Promise}
+import scala.concurrent.duration._
+import scala.util.Random
 
 object WebSocketClient {
 
@@ -75,10 +77,21 @@ case class WebSocketClient(ws: String, metrics: ClientMetrics)(implicit system: 
     (source, queue.future)
   }
 
+  private val PingPeriod = 30.seconds
+  private val PingRE = """Ping (\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ)""".r
+
   // print each incoming message
   private val receiveSink: Sink[Message, Future[Done]] = Sink.foreach {
     case m: TextMessage.Strict =>
       _received.prepend(m.text)
+      m.text match {
+        case PingRE(i) =>
+          val now = Instant.now
+          val start = Instant.parse(i)
+          val latency = Duration.between(start, now)
+          metrics.ping.record(latency.toMillis)
+        case _ =>
+      }
     case m: Message =>
       _received.prepend(m.toString)
   }
@@ -90,10 +103,17 @@ case class WebSocketClient(ws: String, metrics: ClientMetrics)(implicit system: 
       .fromSinkAndSourceMat(receiveSink, sendSource)(Keep.left)
       .watchTermination() { (mat, doneFuture) =>
         metrics.connections.increment()
+        val ping = system.scheduler.schedule(Random.nextInt(PingPeriod.toMillis.toInt).millis, PingPeriod) {
+          val now = Instant.now
+          send(s"Ping $now")
+        }
+
         doneFuture.onComplete { _ =>
           _isClosed.set(true)
           metrics.connections.decrement()
+          ping.cancel()
         }
+
         mat
       }
   }
