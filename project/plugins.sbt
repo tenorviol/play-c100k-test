@@ -1,4 +1,4 @@
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.0-RC1")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.0-RC2")
 
 addSbtPlugin("com.lightbend.cinnamon" % "sbt-cinnamon" % "2.4.0")
 
