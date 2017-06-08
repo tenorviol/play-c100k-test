@@ -26,7 +26,7 @@ lazy val commonDependencies = Seq(
 )
 
 inThisBuild(Seq(
-  version := "0.1.0-PLAY26",
+  version := "0.1.1-PLAY26",
   scalaVersion := "2.11.7",
   resolvers ++= commonResolvers,
   libraryDependencies ++= commonDependencies
