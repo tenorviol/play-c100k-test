@@ -1,4 +1,4 @@
-name := """play-connection-test"""
+name := """c100k-server"""
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala, PlayNettyServer, Cinnamon)
@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
 lazy val client = (project in file("client"))
   .enablePlugins(PlayScala, Cinnamon)
   .settings(Seq(
+    name := "c100k-client",
     cinnamon in run := true
   ))
 
