@@ -2,25 +2,13 @@ package server.controllers
 
 import javax.inject._
 
-import akka.actor.ActorSystem
-import play.api.mvc.{Action, Controller, Result}
-
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Promise}
+import play.api.mvc.{Action, Controller}
 
 @Singleton
-class HomeController @Inject()(system: ActorSystem, ec: ExecutionContext) extends Controller {
+class HomeController extends Controller {
 
-  def index = Action.async {
-    val start = System.currentTimeMillis
-    val result = Promise[Result]
-    system.scheduler.scheduleOnce(10.seconds) {
-      val elapsed = (System.currentTimeMillis - start).millis
-      result.success(
-        Ok(s"Completed in $elapsed")
-      )
-    }(ec)
-    result.future
+  def index = Action {
+    Ok("play-c100k-server")
   }
 
 }

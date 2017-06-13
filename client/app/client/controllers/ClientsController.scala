@@ -7,7 +7,7 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, ControllerComponents, Result}
+import play.api.mvc.{AbstractController, Action, ControllerComponents, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -24,6 +24,9 @@ class ClientsController @Inject() (
     )
   )
 
+  /**
+    * Open one or more new `WebSocketClient`s connected to a single WebSocket server.
+    */
   def post = Action { implicit request =>
     val form = addForm.bindFromRequest()
     form.fold(f => BadRequest(f.errorsAsJson), { case (ws, count) =>
@@ -35,12 +38,14 @@ class ClientsController @Inject() (
     })
   }
 
+  var NotFoundResult = NotFound("404 Not Found")
+
   case class WithClient(n: Int) {
     def apply(f: WebSocketClient => Result): Result = {
-      clients.clientMap.get(n).fold(NotFound("Not Found"))(f)
+      clients.clientMap.get(n).fold(NotFoundResult)(f)
     }
     def async(f: WebSocketClient => Future[Result]): Future[Result] = {
-      clients.clientMap.get(n).fold(Future.successful(NotFound("Not Found")))(f)
+      clients.clientMap.get(n).fold(Future.successful(NotFoundResult))(f)
     }
   }
 
@@ -56,12 +61,18 @@ class ClientsController @Inject() (
     Ok(Json.prettyPrint(data))
   }
 
+  /**
+    * Get data on a specific `WebSocketClient`.
+    */
   def getN(n: Int) = Action {
     WithClient(n) { client =>
       clientResult(n, client)
     }
   }
 
+  /**
+    * Send a text message to the WebSocket server.
+    */
   def postN(n: Int) = Action(parse.text).async { request =>
     WithClient(n).async { client =>
       client.send(request.body).map { _ =>
@@ -70,6 +81,9 @@ class ClientsController @Inject() (
     }
   }
 
+  /**
+    * Disconnect from the WebSocket server.
+    */
   def deleteN(n: Int) = Action.async {
     WithClient(n).async { client =>
       client.close().map { _ =>

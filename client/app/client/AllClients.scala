@@ -21,7 +21,7 @@ class AllClients @Inject() (metrics: ClientMetrics)(implicit system: ActorSystem
     * Returns the client number,
     * corresponding to the client map.
     */
-  def add(ws: String): Int = {
+  def add(ws: String): Int = synchronized {
     val n = nextN
     val client = new WebSocketClient(ws, metrics)
     _clientSet += (n -> client)

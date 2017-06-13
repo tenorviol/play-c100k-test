@@ -1,4 +1,11 @@
-name := """c100k-server"""
+name := """play-c100k-server"""
+
+inThisBuild(Seq(
+  version := "0.1.1-PLAY26",
+  scalaVersion := "2.11.7",
+  resolvers ++= commonResolvers,
+  libraryDependencies ++= commonDependencies
+))
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala, PlayNettyServer, Cinnamon)
@@ -9,7 +16,7 @@ lazy val root = (project in file("."))
 lazy val client = (project in file("client"))
   .enablePlugins(PlayScala, Cinnamon)
   .settings(Seq(
-    name := "c100k-client",
+    name := "play-c100k-client",
     cinnamon in run := true
   ))
 
@@ -24,10 +31,3 @@ lazy val commonDependencies = Seq(
   Cinnamon.library.cinnamonCHMetricsStatsDReporter,
   guice
 )
-
-inThisBuild(Seq(
-  version := "0.1.1-PLAY26",
-  scalaVersion := "2.11.7",
-  resolvers ++= commonResolvers,
-  libraryDependencies ++= commonDependencies
-))

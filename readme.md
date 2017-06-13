@@ -1,36 +1,81 @@
-play-connection-test
-====================
+play-c100k-server
+=================
 
-Simple [Play Framework](https://www.playframework.com/) application
-for testing the upper limit on simultaneous connections.
+This simple repo tests the upper limit on concurrent connections
+served by a [Play Framework](https://www.playframework.com/) server.
+There are two main questions to answer for any concurrency test:
 
-Testing
--------
+1. How many simultaneous connections can be maintained?
+2. How quickly can new connections be acquired?
 
-This is server is designed to test
-how well the Play Framework handles concurrent connections
-on a massive scale.
+We use [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) for testing
+because they allow us to keep sockets open for an arbitrary length of time,
+and they are a part of HTTP,
+which we like and leverage extensively across our infrastructure.
 
-1. Deploy this server on a machine of your choosing.
-   AWS can be super convenient.
-2. Make a lot of requests.
-   I use Apache benchmark for this, `ab`.
-   E.g. `ab -c 1000 -n 5000 -r http://<hostname_or_ip>:9000/`.
-3. Adjust parameters and/or server code,
-   repeat lots of requests.
-   For massive concurrency,
-   it may be necessary to run `ab` across multiple client hosts,
-   and to increase the maximum open file handles for the server process.
-4. Formulate results into a pretty graph.
-5. Write blog post.
-6. A bit late, but profit.
 
-API
----
+Setup
+-----
 
-### GET /
 
-Asynchronously wait 10 seconds,
-then return a text document like this:
+### Setting up the server
 
-    Completed in 10012 milliseconds
+Build it.
+
+    # output: target/universal/play-c100k-server-0.1.1-PLAY26.tgz
+    ./bin/activator universal:packageZipTarball
+
+A bigger server than your MacBook is needed to get impressive numbers,
+so upload to an AWS instance or some such.
+
+    scp target/universal/play-c100k-server-0.1.1-PLAY26.tgz c100k_server:
+    ssh c100k_server
+    tar xf play-c100k-server-0.1.1-PLAY26.tgz
+
+More stuff to install:
+
+* Java 8
+* Telegraf to collect metrics from the server and output to InfluxDB
+* InfluxDB for aggregating metrics
+* Grafana for viewing metrics
+
+Start the server on port 9000
+
+    screen
+    export JAVA_HOME=/path/to/java8
+    ./play-c100k-server-0.1.1-PLAY26/bin/play-c100k-server
+
+
+### Setting up the client
+
+Build it.
+
+    # output: client/target/universal/play-c100k-client-0.1.1-PLAY26.tgz
+    ./bin/activator 'project client' universal:packageZipTarball
+
+Upload to all your client servers.
+I've been able to get 20k clients per instance.
+
+    scp client/target/universal/play-c100k-client-0.1.1-PLAY26.tgz c100k_client:
+    ssh c100k_client
+    tar xf play-c100k-client-0.1.1-PLAY26.tgz
+
+Install:
+
+* Java 8
+* Telegraf
+
+Start the client
+
+    screen
+    export JAVA_HOME=/path/to/java8
+    ./play-c100k-client-0.1.1-PLAY26/bin/play-c100k-client
+    CTRL-a CTRL-d
+
+Initiate some client connections
+
+    curl localhost:9000/clients --data 'ws=ws://c100k_server:9000/ws/echo&count=5'
+
+This creates 5 WebSocketClient instances connected to the c100k_server echo WebSocket.
+All clients send a ping every 30 seconds, and aggregate the latency.
+They should remain connected indefinitely, due to the pings.

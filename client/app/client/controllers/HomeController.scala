@@ -9,9 +9,7 @@ import play.api.mvc.{Action, Controller}
 class HomeController @Inject() (clients: AllClients) extends Controller {
 
   def get = Action {
-    Ok(
-      s"""Client count = ${clients.clientMap.size}
-       """.stripMargin)
+    Ok("play-c100k-client")
   }
 
 }
