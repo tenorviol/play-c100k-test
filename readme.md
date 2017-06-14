@@ -80,13 +80,47 @@ This creates 5 WebSocketClient instances connected to the c100k_server echo WebS
 All clients send a ping every 30 seconds, and aggregate the latency.
 They should remain connected indefinitely, due to the pings.
 
-Experiment 2
-------------
+Experiment 2: Pinging a WebSocket echo server
+---------------------------------------------
+
+In this simple experiment,
+we're trying to get as many clients connected simultaneously as possible.
+The server accepts WebSocket connections,
+and echos back any text sent back to the client.
+The client connects and sends a ping message every 30 seconds.
+
+The server in this experiment was an AWS c3.2xlarge.
+The clients were 10 AWS c3.large instances.
+They all used the java-1.8.0-openjdk-1.8.0.101-3.b13.24.amzn1.x86_64 JVM.
+
+All the following tests require adding connections at a controlled rate.
+Much larger than 10k simultaneous establishments,
+and we start to see failed connection attempts.
 
 ![65k open files limit](./images/1._65k_files_limit.png "65k open files limit")
 
+Predictably, once the server reached the 65k max file descriptors limit,
+it stopped accepting new connections.
+This can be seen clearly in this graph as the count of client connections increases beyond the limit,
+while the server connection tally remains the same.
+After 60s the clients realize they are not connected and remove themselves from the count.
+
+After this point, I set the max file descriptors to 500k.
+
 ![100k connections](./images/2._100k_connections.png "100k connections")
+
+Here I was able to reach 100k concurrent connections using 5 client instances.
 
 ![200k connections](./images/3._200k_connections.png "200k connections")
 
+With each client instance maxing out at about 20k connections,
+I was able to reach 200k connections using 10 client instances.
+The server is also starting to look pretty busy in terms of CPU and memory.
+I'd like to re-run this test increasing the memory of the server.
+
 ![200k 8 hours later](./images/4._200k_14_hours_later.png "200k 8 hours later")
+
+Leaving the server and clients running overnight,
+all connections have remained active,
+and ping times are really good,
+discounting stop-the-world garbage collection.
