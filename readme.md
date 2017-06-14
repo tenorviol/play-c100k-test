@@ -79,3 +79,14 @@ Initiate some client connections
 This creates 5 WebSocketClient instances connected to the c100k_server echo WebSocket.
 All clients send a ping every 30 seconds, and aggregate the latency.
 They should remain connected indefinitely, due to the pings.
+
+Experiment 2
+------------
+
+![65k open files limit](./images/1._65k_files_limit.png "65k open files limit")
+
+![100k connections](./images/2._100k_connections.png "100k connections")
+
+![200k connections](./images/3._200k_connections.png "200k connections")
+
+![200k 8 hours later](./images/4._200k_14_hours_later.png "200k 8 hours later")
