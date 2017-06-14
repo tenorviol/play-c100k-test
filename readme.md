@@ -80,6 +80,18 @@ This creates 5 WebSocketClient instances connected to the c100k_server echo WebS
 All clients send a ping every 30 seconds, and aggregate the latency.
 They should remain connected indefinitely, due to the pings.
 
+
+Experiment 1: Testing with long polling
+---------------------------------------
+
+An initial version of this test used an old school technique known as long polling.
+My thinking was that I could use Apache benchmark as the clients and save myself some programming time.
+The results were underwhelming.
+I believe this is because the rate of connection acquisition is limited,
+so if your clients are constantly disconnecting and reconnecting,
+you're going to have a hard time reaching a high count of concurrent connections.
+
+
 Experiment 2: Pinging a WebSocket echo server
 ---------------------------------------------
 
@@ -124,3 +136,27 @@ Leaving the server and clients running overnight,
 all connections have remained active,
 and ping times are really good,
 discounting stop-the-world garbage collection.
+
+
+Experiment 3: Rate of connection acquisition
+--------------------------------------------
+
+Test how quickly connections can be established.
+
+TODO
+
+
+Experiment 4: Rerun tests using Netty and Play 2.5
+--------------------------------------------------
+
+What changes when we run tests 2 and 3 using Play 2.5 and/or Netty.
+
+TODO
+
+
+Experiment 5: 1M simultaneous connections
+-----------------------------------------
+
+By hook or by crook is it possible to reach 1 million connections with a Play application.
+
+TODO
